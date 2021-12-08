@@ -7,31 +7,33 @@
     <title>Document</title>
   </head>
   <body>
-    <input type="file" multiple id="uplouad">
+    <input type="file" multiple id="uplouad" name="file">
     <img src="http://localhost:8080/0cdba396-4569-47aa-ae61-ed788dbf6f84.jpg" alt="" style="width: 100px; height: auto;">
     <img src="http://localhost:8080/10e57446-3184-46f3-8a4d-7df365fc2ee3.jpg" alt="" style="width: 100px; height: auto;">
     <img src="http://localhost:8080/e2f9d02d-5135-4edb-a607-0dceaf78851c.jpg" alt="" style="width: 100px; height: auto;">
     <img src="http://localhost:8080/f88058ae-16e4-4c70-977a-bf7355633f09.jpg" alt="" style="width: 100px; height: auto;">
 
     <script>
-    function Reuqest(type, url, data){
+    function Request(type, url, data){
       var xhr = new XMLHttpRequest()
       // xhr.open('post', 'http://localhost:8080/post', false)
-      xhr.open(type, url, false)
-      xhr.onload = function(){
-        console.log(xhr.response)
-        // var res = JSON.parse(xhr.response)
-        // document.body.innerHTML = res.name
+      xhr.open(type, url, true)
+      xhr.onreadystatechange = function(){
+        if (xhr.readyState==4 && xhr.status==200){
+          console.log(xhr.response)
+        }
       }
       xhr.send(data)
     }
 
     // (function(){
       var input = document.getElementById('uplouad')
+      var formData = new FormData();
       input.addEventListener('change', (e)=>{
+        e.preventDefault()
+        e.stopPropagation()
         var len  = e.target.files.length
         console.log(len)
-        var formData = new FormData();
         for (var i = 0; i < len; i++) {
           var file = e.target.files[i];
           var fileName = e.target.files[i].name;
@@ -40,8 +42,10 @@
           formData.append("fileName", fileName);
         }
         console.log(formData)
-        Reuqest('post', 'http://localhost:8080/upload', formData)
-      });
+        Request('post', 'http://localhost:8080/upload', formData)
+      },false);
+      // btn.onclick = function(){
+      // }
       // Reuqest('post', 'http://localhost:8080/cgi/login', null)
     // })(window)
 

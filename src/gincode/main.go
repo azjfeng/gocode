@@ -2,7 +2,9 @@ package main
 
 import (
 	"fmt"
+	"io"
 	"log"
+	"os"
 
 	"github.com/gin-gonic/gin"
 )
@@ -20,6 +22,13 @@ func Cors() gin.HandlerFunc {
 
 func main() {
 	router := gin.Default()
+
+	f, _ := os.Create("gin.log")
+	gin.DefaultWriter = io.MultiWriter(f)
+
+	// 如果需要同时将日志写入文件和控制台，请使用以下代码。
+	// gin.DefaultWriter = io.MultiWriter(f, os.Stdout)
+
 	router.Use(Cors())
 	router.MaxMultipartMemory = 8 << 20 // 8 MiB
 	router.Static("/", "./public")
@@ -51,7 +60,9 @@ func main() {
 			c.SaveUploadedFile(file, "./public/"+file.Filename)
 		}
 
-		c.String(200, "上传成功")
+		c.JSON(200, gin.H{
+			"message": "上传成功",
+		})
 	})
 
 	authorized := router.Group("/cgi")
