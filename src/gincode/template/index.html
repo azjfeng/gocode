@@ -7,15 +7,44 @@
     <title>Document</title>
   </head>
   <body>
+    <input type="file" multiple id="uplouad">
+    <img src="http://localhost:8080/0cdba396-4569-47aa-ae61-ed788dbf6f84.jpg" alt="" style="width: 100px; height: auto;">
+    <img src="http://localhost:8080/10e57446-3184-46f3-8a4d-7df365fc2ee3.jpg" alt="" style="width: 100px; height: auto;">
+    <img src="http://localhost:8080/e2f9d02d-5135-4edb-a607-0dceaf78851c.jpg" alt="" style="width: 100px; height: auto;">
+    <img src="http://localhost:8080/f88058ae-16e4-4c70-977a-bf7355633f09.jpg" alt="" style="width: 100px; height: auto;">
+
     <script>
-    var xhr = new XMLHttpRequest()
-    xhr.open('post', 'http://192.168.2.6:8080/post', false)
-    xhr.onload = function(){
-      console.log(xhr.response)
-      var res = JSON.parse(xhr.response)
-      document.body.innerHTML = res.name
+    function Reuqest(type, url, data){
+      var xhr = new XMLHttpRequest()
+      // xhr.open('post', 'http://localhost:8080/post', false)
+      xhr.open(type, url, false)
+      xhr.onload = function(){
+        console.log(xhr.response)
+        // var res = JSON.parse(xhr.response)
+        // document.body.innerHTML = res.name
+      }
+      xhr.send(data)
     }
-    xhr.send(null)
+
+    // (function(){
+      var input = document.getElementById('uplouad')
+      input.addEventListener('change', (e)=>{
+        var len  = e.target.files.length
+        console.log(len)
+        var formData = new FormData();
+        for (var i = 0; i < len; i++) {
+          var file = e.target.files[i];
+          var fileName = e.target.files[i].name;
+          console.log(file, fileName)
+          formData.append("file", file);
+          formData.append("fileName", fileName);
+        }
+        console.log(formData)
+        Reuqest('post', 'http://localhost:8080/upload', formData)
+      });
+      // Reuqest('post', 'http://localhost:8080/cgi/login', null)
+    // })(window)
+
   </script>
   </body>
 </html>
