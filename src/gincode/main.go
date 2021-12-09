@@ -20,12 +20,16 @@ func Cors() gin.HandlerFunc {
 	}
 }
 
+type Person struct {
+	User     string `form:"user" binding:"required"`
+	PassWord string `form:"password" binding:"required"`
+}
+
 func main() {
 	router := gin.Default()
 
 	f, _ := os.Create("gin.log")
 	gin.DefaultWriter = io.MultiWriter(f)
-
 	// 如果需要同时将日志写入文件和控制台，请使用以下代码。
 	// gin.DefaultWriter = io.MultiWriter(f, os.Stdout)
 
@@ -75,5 +79,20 @@ func main() {
 		testing := authorized.Group("testing")
 		testing.POST("/analytics", func(c *gin.Context) { c.String(200, "1") })
 	}
+
+	router.POST("/getUserInfo", func(c *gin.Context) {
+		var person Person
+		if (c.ShouldBindJSON(&person)) == nil {
+			log.Println(person.User)
+			log.Println(person.PassWord)
+			c.JSON(200, gin.H{
+				"name": "jamefeine",
+			})
+			return
+		}
+		c.JSON(200, gin.H{
+			"message": "密码错误",
+		})
+	})
 	router.Run(":8080")
 }

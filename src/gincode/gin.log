@@ -6,6 +6,7 @@
 [GIN-debug] POST   /cgi/submit               --> main.main.func4 (4 handlers)
 [GIN-debug] POST   /cgi/read                 --> main.main.func5 (4 handlers)
 [GIN-debug] POST   /cgi/testing/analytics    --> main.main.func6 (4 handlers)
+[GIN-debug] POST   /getUserInfo              --> main.main.func7 (4 handlers)
 [GIN-debug] [WARNING] You trusted all proxies, this is NOT safe. We recommend you to set a value.
 Please check https://pkg.go.dev/github.com/gin-gonic/gin#readme-don-t-trust-all-proxies for details.
 [GIN-debug] Listening and serving HTTP on :8080
