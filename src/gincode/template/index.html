@@ -8,10 +8,10 @@
   </head>
   <body>
     <input type="file" multiple id="uplouad" name="file">
-    <img src="http://localhost:8080/0cdba396-4569-47aa-ae61-ed788dbf6f84.jpg" alt="" style="width: 100px; height: auto;">
-    <img src="http://localhost:8080/10e57446-3184-46f3-8a4d-7df365fc2ee3.jpg" alt="" style="width: 100px; height: auto;">
-    <img src="http://localhost:8080/e2f9d02d-5135-4edb-a607-0dceaf78851c.jpg" alt="" style="width: 100px; height: auto;">
-    <img src="http://localhost:8080/f88058ae-16e4-4c70-977a-bf7355633f09.jpg" alt="" style="width: 100px; height: auto;">
+    <img src="https://www.azjfeng.com/0cdba396-4569-47aa-ae61-ed788dbf6f84.jpg" alt="" style="width: 100px; height: auto;">
+    <img src="https://www.azjfeng.com/10e57446-3184-46f3-8a4d-7df365fc2ee3.jpg" alt="" style="width: 100px; height: auto;">
+    <img src="https://www.azjfeng.com/e2f9d02d-5135-4edb-a607-0dceaf78851c.jpg" alt="" style="width: 100px; height: auto;">
+    <img src="https://www.azjfeng.com/f88058ae-16e4-4c70-977a-bf7355633f09.jpg" alt="" style="width: 100px; height: auto;">
 
     <script>
     function Request(type, url, data){
@@ -42,11 +42,11 @@
           formData.append("fileName", fileName);
         }
         console.log(formData)
-        Request('post', 'http://localhost:8080/upload', formData)
+        Request('post', 'http://localhost:3333/cgi/upload', formData)
       },false);
       // btn.onclick = function(){
       // }
-      Request('post', 'http://localhost:8080/getUserInfo', JSON.stringify({user: 'aa', password: '222'}))
+      Request('post', 'https://www.azjfeng.com/cgi/login', JSON.stringify({user: 'aa', password: '222'}))
     // })(window)
 
   </script>
