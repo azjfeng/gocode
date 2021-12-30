@@ -54,7 +54,7 @@ func main() {
 				log.Println(file.Filename)
 
 				// 上传文件至指定目录
-				c.SaveUploadedFile(file, "./public/"+file.Filename)
+				c.SaveUploadedFile(file, "/usr/local/static/"+file.Filename)
 			}
 
 			c.JSON(200, gin.H{
