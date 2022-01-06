@@ -1,23 +1,42 @@
+
 package main
 
 import (
 	"fmt"
-	"io"
-	"log"
-	"os"
-
 	"github.com/gin-gonic/gin"
-	"gorm.io/driver/mysql"
-	"gorm.io/gorm"
+	_ "github.com/go-sql-driver/mysql"
+	"github.com/jmoiron/sqlx"
+	"os"
+	"time"
 )
+var Db *sqlx.DB
 
-type User struct {
-	gorm.Model
-
-	ID     int
-	Auther string
-	Title  string
+type Info struct {
+	 Id int `Db:"id"`
+	 Age int `Db:"age"`
+	 Sex int `Db:"sex"`
+	 Name string `Db:"name"`
+	 Phone string `Db:"phone"`
 }
+
+type ShareList struct {
+	Id         	int `Db:"id"`
+	Auther     	string `Db:"auther"`
+	Title      	string `Db:"title"`
+	Create_Time  string `Db:"create_time"`
+	Content 	string `Db:"content"`
+	Support 	int `Db:"support"`
+	Watch_Num 	int `Db:"watch_num"`
+	Image 		string `Db:"image"`
+	Contentdesc string` Db:"contentdesc"`
+}
+
+const (
+	user =  "root"
+	password= "123456"
+	host= "127.0.0.1:3306"
+	dbname = "reactboke"
+)
 
 func Cors() gin.HandlerFunc {
 	return func(context *gin.Context) {
@@ -29,97 +48,83 @@ func Cors() gin.HandlerFunc {
 		context.Next()
 	}
 }
-
-type Person struct {
-	User     string `form:"user" binding:"required"`
-	PassWord string `form:"password" binding:"required"`
-}
-
 func main() {
 	router := gin.Default()
-	db := InitDB()
-	// var user User
-	user := User{Auther: "Jinzhu", Title: "测试"}
-	db.Create(&user)
-	fmt.Println(user)
-	f, _ := os.Create("gin.log")
-	gin.DefaultWriter = io.MultiWriter(f)
-	// 如果需要同时将日志写入文件和控制台，请使用以下代码。
-	// gin.DefaultWriter = io.MultiWriter(f, os.Stdout)
-
 	router.Use(Cors())
-	router.MaxMultipartMemory = 8 << 20 // 8 MiB
-	// router.Static("/", "./public")
+	initDB()
+
+	//writeFile()
 	authorized := router.Group("/cgi")
 	{
-		authorized.POST("/login", func(c *gin.Context) { c.String(200, "1") })
+		authorized.POST("/login", func(c *gin.Context) {
+			info := []Info{}
+			Db.Select(&info,"select * from user")
+			c.JSON(200, info)
+		})
 		authorized.POST("/submit", func(c *gin.Context) { c.String(200, "1") })
 		authorized.POST("/read", func(c *gin.Context) { c.String(200, "1") })
-		authorized.POST("/upload", func(c *gin.Context) {
-			/** 单文件上传 */
-			// file, _ := c.FormFile("file")
-			// log.Println(file)
-			// c.SaveUploadedFile(file, "./public/"+file.Filename)
 
-			/** 多文件上传 */
-			form, _ := c.MultipartForm()
-			files := form.File["file"]
-
-			for _, file := range files {
-				log.Println(file.Filename)
-
-				// 上传文件至指定目录
-				c.SaveUploadedFile(file, "/usr/local/static/"+file.Filename)
-			}
-
-			c.JSON(200, gin.H{
-				"message": "上传成功",
-			})
-		})
-		authorized.POST("/getUserInfo", func(c *gin.Context) {
-			var person Person
-			if (c.ShouldBindJSON(&person)) == nil {
-				log.Println(person.User)
-				log.Println(person.PassWord)
-				c.JSON(200, gin.H{
-					"name": "jamefeine",
-				})
-				return
-			}
-			c.JSON(200, gin.H{
-				"message": "密码错误",
-			})
+		authorized.POST("/getTechnologyShare", func(c *gin.Context) {
+				sharelist := []ShareList{}
+				err := Db.Select(&sharelist, "select * from technology_share")
+				fmt.Println(err)
+				c.JSON(200, sharelist)
 		})
 
-		// 嵌套路由组
-		testing := authorized.Group("testing")
-		testing.POST("/analytics", func(c *gin.Context) { c.String(200, "1") })
+		authorized.POST("/addTechnologyShare", func(c *gin.Context) {
+
+			// 24小时制
+			timeObj := time.Now()
+			var str = timeObj.Format("2006/01/02 15:04:05")
+			fmt.Println(str) // 2020/04/26 17:48:53
+
+			tx := Db.MustBegin()
+			err := tx.MustExec("insert into technology_share (id,auther,title,create_time,content,support,watch_num,image,contentdesc) values ($1,$2,$3,$4,$5,$6,$7,$8,$9)", "null","jamefeng","test",str,"", 1, 1, "https://www.azjfeng.com/0cdba396-4569-47aa-ae61-ed788dbf6f84.jpg")
+			tx.Commit()
+			fmt.Println(err)
+			c.JSON(200, gin.H{"message": "添加成功"})
+		})
 	}
 
-	router.Run(":12345")
+	router.Run(":3332")
 }
-
-func InitDB() *gorm.DB {
-	//前提是你要先在本机用Navicat创建一个名为go_db的数据库
-	host := "localhost"
-	port := "3306"
-	database := "reactBoke"
-	username := "root"
-	password := "123456"
-	charset := "utf8"
-	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=%s&parseTime=true",
-		username,
-		password,
-		host,
-		port,
-		database,
-		charset)
-	//这里 gorm.Open()函数与之前版本的不一样，大家注意查看官方最新gorm版本的用法
-	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
-	if err != nil {
-		panic("Error to Db connection, err: " + err.Error())
+func initDB()  {
+	//数据库连接
+	db,_:=sqlx.Open("mysql", user+":"+password+"@tcp("+host+")/"+dbname)
+	db.SetConnMaxLifetime(time.Minute * 3)
+	db.SetMaxOpenConns(10)
+	db.SetMaxIdleConns(10)
+	Db = db
+	err :=db.Ping()
+	if err != nil{
+		fmt.Println("数据库链接失败")
 	}
-	//这个是gorm自动创建数据表的函数。它会自动在数据库中创建一个名为users的数据表
-	_ = db.AutoMigrate(&User{})
-	return db
+	////多行查询
+	//rows,e:=db.Query("select * from user")
+	//
+	//fmt.Println(e)
+	//fmt.Println("rows",rows)
+	//var id ,age ,sex int ; var name, phone string
+	//for rows.Next(){
+	//	err :=rows.Scan(&id,&name, &age, &sex, &phone)
+	//	if err != nil {
+	//		fmt.Println("get data failed, error:[%v]", err.Error())
+	//	}
+	//	fmt.Println(id,name,age,sex,phone)
+	//}
+	//defer db.Close()
+}
+//写文件
+func writeFile()  {
+	userFile := "D://test.txt"
+	f, err := os.Create(userFile)
+	if err != nil {
+		fmt.Println(userFile, err)
+		return
+	}
+	defer f.Close()
+	for i := 0; i < 10; i++ {
+		f.WriteString("www.361way.com22232311222!\n")
+		f.Write([]byte("Just a test!\n"))
+	}
 }
