@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"io/ioutil"
 	"os"
 	"time"
 
@@ -21,22 +22,22 @@ type Info struct {
 }
 
 type ShareList struct {
-	Id          int    `Db:"id"`
-	Auther      string `Db:"auther"`
-	Title       string `Db:"title"`
-	Create_Time string `Db:"create_time"`
-	Content     string `Db:"content"`
-	Support     int    `Db:"support"`
-	Watch_Num   int    `Db:"watch_num"`
-	Image       string `Db:"image"`
-	Contentdesc string ` Db:"contentdesc"`
+	Id          int    `json:"id"`
+	Auther      string `json:"auther"`
+	Title       string `json:"title"`
+	Create_Time string `json:"create_time"`
+	Content     string `json:"content"`
+	Support     int    `json:"support"`
+	Watch_Num   int    `json:"watch_num"`
+	Image       string `json:"image"`
+	Contentdesc string ` json:"contentdesc"`
 }
 
 const (
 	user     = "root"
 	password = "123456"
 	host     = "127.0.0.1:3306"
-	dbname   = "reactboke"
+	dbname   = "reactBoke"
 )
 
 func Cors() gin.HandlerFunc {
@@ -55,7 +56,7 @@ func main() {
 	initDB()
 
 	//writeFile()
-	authorized := router.Group("/cgi")
+	authorized := router.Group("/common")
 	{
 		authorized.POST("/login", func(c *gin.Context) {
 			info := []Info{}
@@ -129,4 +130,13 @@ func writeFile() {
 		f.WriteString("www.361way.com22232311222!\n")
 		f.Write([]byte("Just a test!\n"))
 	}
+}
+
+//读取文件
+func ReadAll(filePth string) ([]byte, error) {
+	f, err := os.Open(filePth)
+	if err != nil {
+		return nil, err
+	}
+	return ioutil.ReadAll(f)
 }
