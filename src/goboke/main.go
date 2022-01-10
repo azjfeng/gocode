@@ -1,41 +1,42 @@
-
 package main
 
 import (
 	"fmt"
+	"os"
+	"time"
+
 	"github.com/gin-gonic/gin"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/jmoiron/sqlx"
-	"os"
-	"time"
 )
+
 var Db *sqlx.DB
 
 type Info struct {
-	 Id int `Db:"id"`
-	 Age int `Db:"age"`
-	 Sex int `Db:"sex"`
-	 Name string `Db:"name"`
-	 Phone string `Db:"phone"`
+	Id    int    `Db:"id"`
+	Age   int    `Db:"age"`
+	Sex   int    `Db:"sex"`
+	Name  string `Db:"name"`
+	Phone string `Db:"phone"`
 }
 
 type ShareList struct {
-	Id         	int `Db:"id"`
-	Auther     	string `Db:"auther"`
-	Title      	string `Db:"title"`
-	Create_Time  string `Db:"create_time"`
-	Content 	string `Db:"content"`
-	Support 	int `Db:"support"`
-	Watch_Num 	int `Db:"watch_num"`
-	Image 		string `Db:"image"`
-	Contentdesc string` Db:"contentdesc"`
+	Id          int    `Db:"id"`
+	Auther      string `Db:"auther"`
+	Title       string `Db:"title"`
+	Create_Time string `Db:"create_time"`
+	Content     string `Db:"content"`
+	Support     int    `Db:"support"`
+	Watch_Num   int    `Db:"watch_num"`
+	Image       string `Db:"image"`
+	Contentdesc string ` Db:"contentdesc"`
 }
 
 const (
-	user =  "root"
-	password= "123456"
-	host= "127.0.0.1:3306"
-	dbname = "reactboke"
+	user     = "root"
+	password = "123456"
+	host     = "127.0.0.1:3306"
+	dbname   = "reactboke"
 )
 
 func Cors() gin.HandlerFunc {
@@ -58,17 +59,17 @@ func main() {
 	{
 		authorized.POST("/login", func(c *gin.Context) {
 			info := []Info{}
-			Db.Select(&info,"select * from user")
+			Db.Select(&info, "select * from user")
 			c.JSON(200, info)
 		})
 		authorized.POST("/submit", func(c *gin.Context) { c.String(200, "1") })
 		authorized.POST("/read", func(c *gin.Context) { c.String(200, "1") })
 
 		authorized.POST("/getTechnologyShare", func(c *gin.Context) {
-				sharelist := []ShareList{}
-				err := Db.Select(&sharelist, "select * from technology_share")
-				fmt.Println(err)
-				c.JSON(200, sharelist)
+			sharelist := []ShareList{}
+			err := Db.Select(&sharelist, "select * from technology_share")
+			fmt.Println(err)
+			c.JSON(200, sharelist)
 		})
 
 		authorized.POST("/addTechnologyShare", func(c *gin.Context) {
@@ -79,7 +80,7 @@ func main() {
 			fmt.Println(str) // 2020/04/26 17:48:53
 
 			tx := Db.MustBegin()
-			err := tx.MustExec("insert into technology_share (id,auther,title,create_time,content,support,watch_num,image,contentdesc) values ($1,$2,$3,$4,$5,$6,$7,$8,$9)", "null","jamefeng","test",str,"", 1, 1, "https://www.azjfeng.com/0cdba396-4569-47aa-ae61-ed788dbf6f84.jpg")
+			err := tx.MustExec("insert into technology_share (id,auther,title,create_time,content,support,watch_num,image,contentdesc) values ($1,$2,$3,$4,$5,$6,$7,$8,$9)", "null", "jamefeng", "test", str, "", 1, 1, "https://www.azjfeng.com/0cdba396-4569-47aa-ae61-ed788dbf6f84.jpg")
 			tx.Commit()
 			fmt.Println(err)
 			c.JSON(200, gin.H{"message": "添加成功"})
@@ -88,15 +89,15 @@ func main() {
 
 	router.Run(":3332")
 }
-func initDB()  {
+func initDB() {
 	//数据库连接
-	db,_:=sqlx.Open("mysql", user+":"+password+"@tcp("+host+")/"+dbname)
+	db, _ := sqlx.Open("mysql", user+":"+password+"@tcp("+host+")/"+dbname)
 	db.SetConnMaxLifetime(time.Minute * 3)
 	db.SetMaxOpenConns(10)
 	db.SetMaxIdleConns(10)
 	Db = db
-	err :=db.Ping()
-	if err != nil{
+	err := db.Ping()
+	if err != nil {
 		fmt.Println("数据库链接失败")
 	}
 	////多行查询
@@ -114,8 +115,9 @@ func initDB()  {
 	//}
 	//defer db.Close()
 }
+
 //写文件
-func writeFile()  {
+func writeFile() {
 	userFile := "D://test.txt"
 	f, err := os.Create(userFile)
 	if err != nil {
