@@ -8,6 +8,7 @@ import (
 	"github.com/jmoiron/sqlx"
 	"os"
 	"time"
+	"io/ioutil"
 )
 var Db *sqlx.DB
 
@@ -29,6 +30,10 @@ type ShareList struct {
 	Watch_Num 	int `json:"watch_num"`
 	Image 		string `json:"image"`
 	Contentdesc string` json:"contentdesc"`
+}
+
+type Form struct{
+	Title string `json:"title"`
 }
 
 const (
@@ -83,6 +88,25 @@ func main() {
 			tx.Commit()
 			fmt.Println(err)
 			c.JSON(200, gin.H{"message": "添加成功"})
+			}) 
+
+		authorized.POST("/getDetail", func (c *gin.Context) {
+
+				// 声明接收的变量
+				var json Form
+				// 将request的body中的数据，自动按照json格式解析到结构体
+				if err := c.ShouldBindJSON(&json); err != nil {
+					 // 返回错误信息
+					 // gin.H封装了生成json数据的工具
+					 c.JSON(-1, gin.H{"error": err.Error()})
+					 return
+				}
+				content,_ := ReadAll("/usr/local/static/text/"+ json.Title+".txt")
+				fmt.Println(string(content))
+				sharelist := []ShareList{}
+				err := Db.Select(&sharelist, "select * from technology_share where title = ?", json.Title)
+				fmt.Println(err)
+				c.JSON(200, gin.H{"result": sharelist, "content": string(content)})
 		})
 	}
 
@@ -128,3 +152,12 @@ func writeFile()  {
 		f.Write([]byte("Just a test!\n"))
 	}
 }
+
+func ReadAll(filePth string) ([]byte, error) {
+	f, err := os.Open(filePth)
+	if err != nil {
+	 return nil, err
+	}
+	
+	return ioutil.ReadAll(f)
+ }
