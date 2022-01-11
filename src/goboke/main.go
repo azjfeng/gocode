@@ -33,6 +33,17 @@ type ShareList struct {
 	Contentdesc string ` json:"contentdesc"`
 }
 
+type Form struct {
+	Title string `json:"title"`
+}
+
+type AddData struct {
+	Title string `json:"title"`
+	Auther string `json:"auther"`
+	Desc string `json:"desc"`
+	Content string `json:"content"`
+}
+
 const (
 	user     = "root"
 	password = "123456"
@@ -74,17 +85,47 @@ func main() {
 		})
 
 		authorized.POST("/addTechnologyShare", func(c *gin.Context) {
+			// 声明接收的变量
+			var json AddData
 
+			// 将request的body中的数据，自动按照json格式解析到结构体
+			if err := c.ShouldBindJSON(&json); err != nil {
+				// 返回错误信息
+				// gin.H封装了生成json数据的工具
+				c.JSON(-1, gin.H{"error": err.Error()})
+				return
+			}
+
+			fmt.Println(json)
 			// 24小时制
 			timeObj := time.Now()
 			var str = timeObj.Format("2006/01/02 15:04:05")
 			fmt.Println(str) // 2020/04/26 17:48:53
 
 			tx := Db.MustBegin()
-			err := tx.MustExec("insert into technology_share (id,auther,title,create_time,content,support,watch_num,image,contentdesc) values ($1,$2,$3,$4,$5,$6,$7,$8,$9)", "null", "jamefeng", "test", str, "", 1, 1, "https://www.azjfeng.com/0cdba396-4569-47aa-ae61-ed788dbf6f84.jpg")
+			err := tx.MustExec("insert into technology_share (auther,title,create_time,content,support,watch_num,image,contentdesc) values (?,?,?,?,?,?,?,?)", json.Auther, json.Title, str, "", 1, 1, "https://www.azjfeng.com/static/2019-06-20-1.png",json.Desc)
 			tx.Commit()
 			fmt.Println(err)
 			c.JSON(200, gin.H{"message": "添加成功"})
+		})
+
+		authorized.POST("/getDetail", func(c *gin.Context) {
+
+			// 声明接收的变量
+			var json Form
+			// 将request的body中的数据，自动按照json格式解析到结构体
+			if err := c.ShouldBindJSON(&json); err != nil {
+				// 返回错误信息
+				// gin.H封装了生成json数据的工具
+				c.JSON(-1, gin.H{"error": err.Error()})
+				return
+			}
+			content, _ := ReadAll("/usr/local/static/text/" + json.Title + ".txt")
+			fmt.Println(string(content))
+			sharelist := []ShareList{}
+			err := Db.Select(&sharelist, "select * from technology_share where title = ?", json.Title)
+			fmt.Println(err)
+			c.JSON(200, gin.H{"result": sharelist, "content": string(content)})
 		})
 	}
 
@@ -132,11 +173,11 @@ func writeFile() {
 	}
 }
 
-//读取文件
 func ReadAll(filePth string) ([]byte, error) {
 	f, err := os.Open(filePth)
 	if err != nil {
 		return nil, err
 	}
+
 	return ioutil.ReadAll(f)
 }
