@@ -95,7 +95,7 @@ func main() {
 				c.JSON(-1, gin.H{"error": err.Error()})
 				return
 			}
-
+			writeFile("/usr/local/static/text/" + json.Title + ".txt", json.Content)
 			fmt.Println(json)
 			// 24小时制
 			timeObj := time.Now()
@@ -126,6 +126,19 @@ func main() {
 			err := Db.Select(&sharelist, "select * from technology_share where title = ?", json.Title)
 			fmt.Println(err)
 			c.JSON(200, gin.H{"result": sharelist, "content": string(content)})
+		})
+
+		authorized.POST("/updateTechnologyShare", func(c *gin.Context) {
+			//// 声明接收的变量
+			//var json AddData
+			//
+			//// 将request的body中的数据，自动按照json格式解析到结构体
+			//if err := c.ShouldBindJSON(&json); err != nil {
+			//	// 返回错误信息
+			//	// gin.H封装了生成json数据的工具
+			//	c.JSON(-1, gin.H{"error": err.Error()})
+			//	return
+			//}
 		})
 	}
 
@@ -159,18 +172,15 @@ func initDB() {
 }
 
 //写文件
-func writeFile() {
-	userFile := "D://test.txt"
+func writeFile(path string, content string) {
+	userFile := path
 	f, err := os.Create(userFile)
 	if err != nil {
 		fmt.Println(userFile, err)
 		return
 	}
 	defer f.Close()
-	for i := 0; i < 10; i++ {
-		f.WriteString("www.361way.com22232311222!\n")
-		f.Write([]byte("Just a test!\n"))
-	}
+	f.WriteString(content)
 }
 
 func ReadAll(filePth string) ([]byte, error) {
