@@ -44,6 +44,14 @@ type AddData struct {
 	Content string `json:"content"`
 }
 
+type UpdateData struct {
+	Id int `json:"id"`
+	Title string `json:"title"`
+	Auther string `json:"auther"`
+	Desc string `json:"desc"`
+	Content string `json:"content"`
+}
+
 const (
 	user     = "root"
 	password = "123456"
@@ -130,15 +138,23 @@ func main() {
 
 		authorized.POST("/updateTechnologyShare", func(c *gin.Context) {
 			//// 声明接收的变量
-			//var json AddData
-			//
-			//// 将request的body中的数据，自动按照json格式解析到结构体
-			//if err := c.ShouldBindJSON(&json); err != nil {
-			//	// 返回错误信息
-			//	// gin.H封装了生成json数据的工具
-			//	c.JSON(-1, gin.H{"error": err.Error()})
-			//	return
-			//}
+			var json UpdateData
+
+			// 将request的body中的数据，自动按照json格式解析到结构体
+			if err := c.ShouldBindJSON(&json); err != nil {
+				// 返回错误信息
+				// gin.H封装了生成json数据的工具
+				c.JSON(-1, gin.H{"error": err.Error()})
+				return
+			}
+			writeFile("/usr/local/static/text/" + json.Title + ".txt", json.Content)
+			sqlStr := "update technology_share set title = ?,  auther= ?, contentdesc=? where id = ?"
+			_, err := Db.Exec(sqlStr, json.Title, json.Auther, json.Desc,json.Id)
+			if err != nil {
+				fmt.Printf("update failed, err:%v\n", err)
+				return
+			}
+			c.JSON(200, gin.H{"message": "修改成功"})
 		})
 	}
 
